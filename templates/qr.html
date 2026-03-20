@@ -25,38 +25,45 @@
         }
         
         .qr-section {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0;
             margin-bottom: 15px;
         }
         
         .qr-image {
             padding: 10px;
             border: 1px solid #ddd;
-            text-align: center;
+            display: inline-block;
+            line-height: 0;
         }
         
         .qr-image img {
-            max-width: 100%;
-            height: auto;
+            display: block;
+            width: 250px;
+            height: 250px;
         }
         
         .text-section {
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 272px;
         }
         
         .text-label {
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-top: 8px;
+            margin-bottom: 3px;
             font-size: 13px;
+            text-align: center;
+            width: 100%;
         }
         
         .text-content {
             background: #fafafa;
-            padding: 10px;
+            padding: 6px 10px;
             border: 1px solid #ddd;
             overflow-y: auto;
             max-height: 250px;
@@ -64,6 +71,8 @@
             line-height: 1.5;
             word-wrap: break-word;
             text-align: center;
+            width: 100%;
+            box-sizing: border-box;
         }
         
         .buttons {
@@ -111,24 +120,36 @@
                 margin: 0;
                 padding: 0;
             }
-            
+
             .qr-section {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 15px;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0;
                 margin-bottom: 0;
             }
             
             .qr-image {
                 border: none;
                 padding: 0;
-                max-width: 33%;
+                line-height: 0;
+            }
+
+            .qr-image img {
+                width: 250px;
+                height: 250px;
+            }
+
+            .text-section {
+                width: 250px;
             }
             
             .text-label {
                 font-weight: bold;
-                margin-bottom: 5px;
+                margin-top: 6px;
+                margin-bottom: 3px;
                 font-size: 12px;
+                text-align: center;
             }
             
             .text-content {
@@ -137,7 +158,7 @@
                 padding: 0;
                 max-height: none;
                 font-size: 11px;
-                text-align: left;
+                text-align: center;
             }
             
             .buttons, .feedback {
