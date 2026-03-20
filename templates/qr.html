@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Viewer</title>
+    <title>QR Code</title>
     <style>
         * {
             margin: 0;
@@ -12,200 +12,168 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #3b3b3b;
+            padding: 10px;
         }
         
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
             max-width: 600px;
-            width: 100%;
-            text-align: center;
+            margin: 0 auto;
+            background: white;
+            padding: 15px;
         }
         
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
+        .qr-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
         }
         
         .qr-image {
-            margin: 30px 0;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            display: inline-block;
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
         }
         
         .qr-image img {
-            max-width: 400px;
-            width: 100%;
+            max-width: 100%;
             height: auto;
-            border-radius: 10px;
         }
         
         .text-section {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .text-label {
-            color: #666;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 13px;
         }
         
         .text-content {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 20px;
-            border-radius: 10px;
-            word-break: break-word;
-            color: #333;
-            font-size: 16px;
-            line-height: 1.6;
-            text-align: left;
-            max-height: 200px;
+            background: #fafafa;
+            padding: 10px;
+            border: 1px solid #ddd;
             overflow-y: auto;
+            max-height: 250px;
+            font-size: 12px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            text-align: center;
         }
         
         .buttons {
             display: flex;
-            gap: 15px;
-            margin-top: 30px;
-            flex-wrap: wrap;
-            justify-content: center;
+            gap: 8px;
         }
         
         .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 8px 15px;
+            border: 1px solid #999;
+            background: white;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .btn-print {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-print:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-copy {
-            background: #f0f0f0;
-            color: #333;
-            border: 2px solid #667eea;
-        }
-        
-        .btn-copy:hover {
-            background: #667eea;
-            color: white;
-        }
-        
-        .footer {
-            margin-top: 30px;
-            color: #999;
             font-size: 12px;
         }
         
-        .copy-feedback {
-            display: none;
-            color: #27ae60;
-            font-weight: 600;
-            margin-top: 10px;
-            animation: fadeInOut 2s ease-in-out;
+        .btn:hover {
+            background: #f0f0f0;
         }
         
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 1; }
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        
+        .btn-primary:hover {
+            background: #0052a3;
+        }
+        
+        .feedback {
+            display: none;
+            font-size: 11px;
+            color: green;
+            margin-top: 5px;
         }
         
         @media print {
             body {
                 background: white;
+                padding: 0;
             }
             
             .container {
-                box-shadow: none;
-                padding: 20px;
-            }
-            
-            .buttons, .footer, .subtitle {
-                display: none;
-            }
-            
-            .text-label, .text-content {
-                border: none;
-                background: none;
+                max-width: 100%;
+                margin: 0;
                 padding: 0;
-                margin: 20px 0 0 0;
-                text-align: center;
+            }
+            
+            .qr-section {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 0;
+            }
+            
+            .qr-image {
+                border: none;
+                padding: 0;
+                max-width: 33%;
+            }
+            
+            .text-label {
+                font-weight: bold;
+                margin-bottom: 5px;
+                font-size: 12px;
+            }
+            
+            .text-content {
+                border: none;
+                background: white;
+                padding: 0;
+                max-height: none;
+                font-size: 11px;
+                text-align: left;
+            }
+            
+            .buttons, .feedback {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📱 QR Code</h1>
-        <p class="subtitle">Сканируйте или используйте код ниже</p>
-        
-        <div class="qr-image">
-            <img src="{{ url_for('get_qr_image', qr_id=qr_id) }}" alt="QR Code">
-        </div>
-        
-        <div class="text-section">
-            <div class="text-label">📝 Закодированный текст:</div>
-            <div class="text-content">{{ text }}</div>
+        <div class="qr-section">
+            <div class="qr-image">
+                <img src="{{ url_for('get_qr_image', qr_id=qr_id) }}" alt="QR Code">
+            </div>
+            
+            <div class="text-section">
+                <div class="text-label">Текст:</div>
+                <div class="text-content">{{ text }}</div>
+            </div>
         </div>
         
         <div class="buttons">
-            <button class="btn btn-print" onclick="window.print()">🖨️ Печать</button>
-            <button class="btn btn-copy" onclick="copyToClipboard()">📋 Копировать текст</button>
+            <button class="btn btn-primary" onclick="window.print()">Печать</button>
+            <button class="btn" onclick="copyText()">Копировать</button>
         </div>
         
-        <div class="copy-feedback" id="feedback">✅ Текст скопирован в буфер обмена!</div>
-        
-        <div class="footer">
-            <p>Создано QR Code Bot | Made with ❤️</p>
-        </div>
+        <div class="feedback" id="feedback">Скопировано!</div>
     </div>
     
     <script>
-        function copyToClipboard() {
+        function copyText() {
             const text = "{{ text }}";
             navigator.clipboard.writeText(text).then(() => {
-                const feedback = document.getElementById('feedback');
-                feedback.style.display = 'block';
-                setTimeout(() => {
-                    feedback.style.display = 'none';
-                }, 2000);
+                const fb = document.getElementById('feedback');
+                fb.style.display = 'block';
+                setTimeout(() => { fb.style.display = 'none'; }, 1500);
             });
         }
     </script>
