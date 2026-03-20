@@ -130,18 +130,18 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             [InlineKeyboardButton("🌐 Открыть в браузере", url=f"{bot_url}/qr/{qr_id}")]
         ])
         
-        # Отправляем фото QR кода
+        # Отправляем фото QR кода c исходный текстом
         await update.message.reply_photo(
             photo=img_io,
-            caption="✅ QR код создан!",
+            caption=text,
             reply_markup=keyboard
         )
         
-        # Отправляем исходный текст
-        await update.message.reply_text(
-            f"📝 <b>Исходный текст:</b>\n<code>{text}</code>",
-            parse_mode='HTML'
-        )
+        # # Отправляем исходный текст
+        # await update.message.reply_text(
+        #     f"📝 <b>Исходный текст:</b>\n<code>{text}</code>",
+        #     parse_mode='HTML'
+        # )
         
     except Exception as e:
         logger.error(f"Ошибка при обработке текста: {e}", exc_info=True)
