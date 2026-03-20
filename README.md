@@ -39,15 +39,25 @@ pip install -r requirements.txt
 2. Создайте новый проект
 3. Подключите ваш GitHub репозиторий
 4. В настройках проекта добавьте переменные окружения:
-   - `TELEGRAM_TOKEN`: Ваш токен бота
-   - `WEBHOOK_URL`: `https://your-app-name.railway.app/`
-   - `PORT`: `8443`
+   - `TELEGRAM_TOKEN`: Ваш токен бота (от @BotFather)
+   - **Больше ничего не нужно!** Webhook URL будет автоматически создана из `RAILWAY_PUBLIC_DOMAIN`
 
 5. Нажмите Deploy
 
-### 3. Получение URL приложения
+### 3. Получение URL приложения (Webhook)
 
-После развертывания Railway предоставит URL вашего приложения. Это будет ваш `WEBHOOK_URL`.
+После развертывания в Railway:
+1. Перейдите на вкладку **Deployments**
+2. Кликните на развернутое приложение
+3. В разделе **View Logs** или **Settings** найдите **Public URL** (это и есть `RAILWAY_PUBLIC_DOMAIN`)
+4. Ваш webhook URL будет: `https://{PUBLIC_URL}/`
+
+**Пример**: Если Railway выдал вам URL `my-qr-bot-prod.railway.app`, то webhook будет:
+```
+https://my-qr-bot-prod.railway.app/
+```
+
+Бот **автоматически** использует эту переменную! 🤖
 
 ## 🧪 Локальное тестирование
 
@@ -114,12 +124,20 @@ python main.py
 - На Railway это делается в Project Settings → Variables
 
 ### Бот не отвечает
-- Убедитесь, что `WEBHOOK_URL` правильно установлена
-- Проверьте логи на Railway
+- Убедитесь, что webhook правильно установлена
+- Проверьте логи на Railway (Deployments → View Logs)
+- Проверьте, что запущен правильный процесс и нет ошибок
 
 ### QR код не открывается в браузере
-- Чекните, что `WEBHOOK_URL` совпадает с URL приложения на Railway
+- Чекните, что webhook URL совпадает с URL приложения на Railway
 - URL должен заканчиваться на `/`
+- Пример: `https://my-qr-bot-prod.railway.app/`
+
+### Как найти webhook URL после развертывания?
+1. Откройте ваш проект на Railway
+2. Перейдите на вкладку **Build, Deploy, Domains**
+3. Найдите **Domains** → там будет ваш public URL
+4. Это и есть webhook (бот автоматически его использует)
 
 ## 📞 Поддержка
 

@@ -21,7 +21,13 @@ logger = logging.getLogger(__name__)
 # Переменные окружения
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 PORT = int(os.getenv('PORT', 8443))
+
+# Webhook URL - используем RAILWAY_PUBLIC_DOMAIN если доступна
 WEBHOOK_URL = os.getenv('WEBHOOK_URL')
+if not WEBHOOK_URL and os.getenv('RAILWAY_PUBLIC_DOMAIN'):
+    WEBHOOK_URL = f"https://{os.getenv('RAILWAY_PUBLIC_DOMAIN')}/"
+elif not WEBHOOK_URL:
+    WEBHOOK_URL = os.getenv('WEBHOOK_URL_FALLBACK')
 
 # Инициализация Flask приложения
 flask_app = Flask(__name__)
@@ -75,7 +81,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 ✅ Фото QR кода в чате
 ✅ Ссылка для просмотра в браузере
 ✅ Возможность печати
-✅ Исходный текст под ссылкой
 
 Попробуйте уже сейчас! Отправьте любой текст 📝
     """
