@@ -134,6 +134,7 @@
             margin: 0 auto;
             position: relative;
             display: none; /* показываем только при печати */
+            overflow: hidden
         }
 
         /* 9 зон (3×3), каждая — 1/3 ширины и высоты */
@@ -172,7 +173,7 @@
         }
 
         .zone-text-value {
-            font-size: 8pt;
+            font-size: 15pt;
             text-align: center;
             word-break: break-all;
             max-width: 60mm;
@@ -181,9 +182,10 @@
 
         /* ── Медиа: печать ── */
         @media print {
-            body { background: white; padding: 0; }
+            body { background: white; padding: 0; margin: 0; }
             .ui-panel { display: none; }
             .print-sheet { display: block; }
+            @page { margin: 0; }  /* ← убирает отступы браузера */
         }
     </style>
 </head>
@@ -284,7 +286,6 @@
         var zoneEl = document.getElementById('pz' + (selected + 1));
         zoneEl.innerHTML =
             '<img class="zone-qr-img" src="' + QR_SRC + '" alt="QR Code">' +
-            '<div class="zone-text-label">Текст:</div>' +
             '<div class="zone-text-value">' + escHtml(QR_TEXT) + '</div>';
     }
 
