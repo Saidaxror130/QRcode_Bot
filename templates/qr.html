@@ -5,198 +5,296 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             font-family: Arial, sans-serif;
             background: #3b3b3b;
-            padding: 10px;
+            padding: 16px;
         }
-        
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 15px;
-        }
-        
-        .qr-section {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0;
-            margin-bottom: 15px;
-        }
-        
-        .qr-image {
-            padding: 10px;
+
+        /* ── UI панель (скрывается при печати) ── */
+        .ui-panel {
+            max-width: 560px;
+            margin: 0 auto 20px;
+            background: #fff;
             border: 1px solid #ddd;
-            display: inline-block;
-            line-height: 0;
+            padding: 16px 20px;
         }
-        
-        .qr-image img {
-            display: block;
-            width: 250px;
-            height: 250px;
+
+        .ui-panel h3 {
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 12px;
         }
-        
-        .text-section {
+
+        .layout {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        /* Кнопки 3×3 */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 44px);
+            gap: 5px;
+        }
+
+        .zone-btn {
+            width: 44px;
+            height: 36px;
+            border: 1px solid #ccc;
+            background: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.12s, color 0.12s, border-color 0.12s;
+        }
+
+        .zone-btn:hover {
+            background: #f5f5f5;
+            border-color: #999;
+            color: #222;
+        }
+
+        .zone-btn.active {
+            background: #1a6fc4;
+            color: #fff;
+            border-color: #1a6fc4;
+        }
+
+        .hint-text {
+            margin-top: 6px;
+            font-size: 11px;
+            color: #888;
+            text-align: center;
+        }
+
+        /* Превью А4 */
+        .preview-wrap { }
+
+        .preview-label {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .a4-preview {
+            width: 148px;
+            height: 210px;
+            border: 1px solid #aaa;
+            background: #fff;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+        }
+
+        .a4-cell {
+            border: 0.5px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .a4-cell.active-cell {
+            background: #ddeeff;
+        }
+
+        .qr-mini {
+            width: 32px;
+            height: 32px;
+            background: #1a6fc4;
+            opacity: 0.25;
+            border-radius: 2px;
+        }
+
+        .btn-print {
+            margin-top: 14px;
+            padding: 7px 18px;
+            border: 1px solid #999;
+            background: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .btn-print:hover { background: #f5f5f5; }
+
+
+        /* ── Печатный лист ── */
+        .print-sheet {
+            width: 210mm;
+            height: 297mm;
+            background: #fff;
+            margin: 0 auto;
+            position: relative;
+            display: none; /* показываем только при печати */
+        }
+
+        /* 9 зон (3×3), каждая — 1/3 ширины и высоты */
+        .print-zone {
+            position: absolute;
+            width: 33.333%;
+            height: 33.333%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 272px;
+            justify-content: center;
         }
-        
-        .text-label {
+
+        /* Позиции зон */
+        .zone-1  { top: 0;       left: 0; }
+        .zone-2  { top: 0;       left: 33.333%; }
+        .zone-3  { top: 0;       left: 66.666%; }
+        .zone-4  { top: 33.333%; left: 0; }
+        .zone-5  { top: 33.333%; left: 33.333%; }
+        .zone-6  { top: 33.333%; left: 66.666%; }
+        .zone-7  { top: 66.666%; left: 0; }
+        .zone-8  { top: 66.666%; left: 33.333%; }
+        .zone-9  { top: 66.666%; left: 66.666%; }
+
+        .zone-qr-img {
+            width: 55mm;
+            height: 55mm;
+            display: block;
+        }
+
+        .zone-text-label {
             font-weight: bold;
-            margin-top: 8px;
-            margin-bottom: 3px;
-            font-size: 13px;
+            font-size: 9pt;
+            margin-top: 4mm;
             text-align: center;
-            width: 100%;
         }
-        
-        .text-content {
-            background: #fafafa;
-            padding: 6px 10px;
-            border: 1px solid #ddd;
-            overflow-y: auto;
-            max-height: 250px;
-            font-size: 12px;
-            line-height: 1.5;
-            word-wrap: break-word;
+
+        .zone-text-value {
+            font-size: 8pt;
             text-align: center;
-            width: 100%;
-            box-sizing: border-box;
+            word-break: break-all;
+            max-width: 60mm;
+            line-height: 1.4;
         }
-        
-        .buttons {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .btn {
-            padding: 8px 15px;
-            border: 1px solid #999;
-            background: white;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        
-        .btn:hover {
-            background: #f0f0f0;
-        }
-        
-        .btn-primary {
-            background: #0066cc;
-            color: white;
-            border-color: #0066cc;
-        }
-        
-        .btn-primary:hover {
-            background: #0052a3;
-        }
-        
-        .feedback {
-            display: none;
-            font-size: 11px;
-            color: green;
-            margin-top: 5px;
-        }
-        
+
+        /* ── Медиа: печать ── */
         @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-            
-            .container {
-                max-width: 100%;
-                margin: 0;
-                padding: 0;
-            }
-
-            .qr-section {
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0;
-                margin-bottom: 0;
-            }
-            
-            .qr-image {
-                border: none;
-                padding: 0;
-                line-height: 0;
-            }
-
-            .qr-image img {
-                width: 250px;
-                height: 250px;
-            }
-
-            .text-section {
-                width: 250px;
-            }
-            
-            .text-label {
-                font-weight: bold;
-                margin-top: 6px;
-                margin-bottom: 3px;
-                font-size: 12px;
-                text-align: center;
-            }
-            
-            .text-content {
-                border: none;
-                background: white;
-                padding: 0;
-                max-height: none;
-                font-size: 11px;
-                text-align: center;
-            }
-            
-            .buttons, .feedback {
-                display: none;
-            }
+            body { background: white; padding: 0; }
+            .ui-panel { display: none; }
+            .print-sheet { display: block; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="qr-section">
-            <div class="qr-image">
-                <img src="{{ url_for('get_qr_image', qr_id=qr_id) }}" alt="QR Code">
-            </div>
-            
-            <div class="text-section">
-                <div class="text-label">Текст:</div>
-                <div class="text-content">{{ text }}</div>
-            </div>
+
+<!-- UI (не печатается) -->
+<div class="ui-panel">
+    <h3>Выберите позицию QR-кода на листе А4</h3>
+    <div class="layout">
+        <div>
+            <div class="btn-grid" id="btnGrid"></div>
+            <div class="hint-text" id="hintText">По центру</div>
+            <button class="btn-print" onclick="window.print()">Печать</button>
         </div>
-        
-        <div class="buttons">
-            <button class="btn btn-primary" onclick="window.print()">Печать</button>
-            <button class="btn" onclick="copyText()">Копировать</button>
+        <div class="preview-wrap">
+            <div class="preview-label">Предварительный просмотр</div>
+            <div class="a4-preview" id="a4Preview"></div>
         </div>
-        
-        <div class="feedback" id="feedback">Скопировано!</div>
     </div>
-    
-    <script>
-        function copyText() {
-            const text = "{{ text }}";
-            navigator.clipboard.writeText(text).then(() => {
-                const fb = document.getElementById('feedback');
-                fb.style.display = 'block';
-                setTimeout(() => { fb.style.display = 'none'; }, 1500);
-            });
+</div>
+
+<!-- Печатный лист -->
+<div class="print-sheet" id="printSheet">
+    <!-- зоны 1-9, QR будет вставлен в нужную -->
+    <div class="print-zone zone-1"  id="pz1"></div>
+    <div class="print-zone zone-2"  id="pz2"></div>
+    <div class="print-zone zone-3"  id="pz3"></div>
+    <div class="print-zone zone-4"  id="pz4"></div>
+    <div class="print-zone zone-5"  id="pz5"></div>
+    <div class="print-zone zone-6"  id="pz6"></div>
+    <div class="print-zone zone-7"  id="pz7"></div>
+    <div class="print-zone zone-8"  id="pz8"></div>
+    <div class="print-zone zone-9"  id="pz9"></div>
+</div>
+
+<script>
+    var QR_SRC = "{{ url_for('get_qr_image', qr_id=qr_id) }}";
+    var QR_TEXT = "{{ text }}";
+
+    var zoneNames = [
+        'Верхний левый',  'Верхний центр',  'Верхний правый',
+        'Средний левый',  'По центру',       'Средний правый',
+        'Нижний левый',   'Нижний центр',    'Нижний правый'
+    ];
+
+    var selected = 4; // индекс 0-8, по умолчанию — центр (5)
+
+    /* --- Превью А4 --- */
+    var a4 = document.getElementById('a4Preview');
+    var previewCells = [];
+    for (var i = 0; i < 9; i++) {
+        var c = document.createElement('div');
+        c.className = 'a4-cell';
+        a4.appendChild(c);
+        previewCells.push(c);
+    }
+
+    /* --- Кнопки --- */
+    var btnGrid = document.getElementById('btnGrid');
+    var buttons = [];
+    for (var i = 0; i < 9; i++) {
+        (function(idx){
+            var b = document.createElement('button');
+            b.className = 'zone-btn' + (idx === 4 ? ' active' : '');
+            b.textContent = idx + 1;
+            b.onclick = function(){ select(idx); };
+            btnGrid.appendChild(b);
+            buttons.push(b);
+        })(i);
+    }
+
+    /* --- Выбор позиции --- */
+    function select(idx) {
+        selected = idx;
+
+        /* кнопки */
+        buttons.forEach(function(b, i){ b.classList.toggle('active', i === idx); });
+
+        /* превью */
+        previewCells.forEach(function(c, i){
+            c.classList.toggle('active-cell', i === idx);
+            c.innerHTML = (i === idx) ? '<div class="qr-mini"></div>' : '';
+        });
+
+        /* хинт */
+        document.getElementById('hintText').textContent = zoneNames[idx];
+
+        /* обновить печатный лист */
+        updatePrintSheet();
+    }
+
+    function updatePrintSheet() {
+        /* очистить все зоны */
+        for (var i = 1; i <= 9; i++) {
+            document.getElementById('pz' + i).innerHTML = '';
         }
-    </script>
+        /* вставить в нужную */
+        var zoneEl = document.getElementById('pz' + (selected + 1));
+        zoneEl.innerHTML =
+            '<img class="zone-qr-img" src="' + QR_SRC + '" alt="QR Code">' +
+            '<div class="zone-text-label">Текст:</div>' +
+            '<div class="zone-text-value">' + escHtml(QR_TEXT) + '</div>';
+    }
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    /* --- Инициализация --- */
+    select(4);
+</script>
+
 </body>
 </html>
