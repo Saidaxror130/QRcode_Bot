@@ -2,6 +2,7 @@ import os
 import io
 import logging
 import asyncio
+import re
 import qrcode
 from flask import Flask, render_template, send_file
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -44,6 +45,7 @@ def get_qr_image(qr_id):
         return 'QR код не найден', 404
     
     text_data = qr_storage[qr_id]
+    colors = qr_storage.get(f"{qr_id}_colors", {"fill": "black", "back": "white"})
     
     # Генерируем QR код
     qr = qrcode.QRCode(
@@ -55,7 +57,7 @@ def get_qr_image(qr_id):
     qr.add_data(text_data)
     qr.make(fit=True)
     
-    img = qr.make_image(fill_color="black", back_color="white")
+    img = qr.make_image(fill_color=colors["fill"], back_color=colors["back"])
     
     # Сохраняем в памяти и отправляем
     img_io = io.BytesIO()
@@ -69,6 +71,54 @@ def health():
     """Проверка здоровья приложения"""
     return {'status': 'ok'}, 200
 
+def is_valid_hex(color):
+    """
+    Валидирует HEX цвет по regex ^#([A-Fa-f0-9]{6})$
+    """
+    return bool(re.match(r'^#([A-Fa-f0-9]{6})$', color))
+
+def parse_text_and_colors(input_text):
+    """
+    Парсит входящее сообщение и извлекает:
+    - Основной текст/ссылку
+    - Цвет QR-кода (fill_color)
+    - Цвет фона (back_color)
+    
+    Правила:
+    - Нет RGB кодов → fill_color = #000000 (черный), back_color = #ffffff (белый) — дефолт
+    - Только 1 RGB код → fill_color = parts[1], back_color = #ffffff (дефолт)
+    - 2 RGB кода → fill_color = parts[1], back_color = parts[2]
+    
+    Возвращает словарь: {
+        'text': строка,
+        'fill_color': цвет QR,
+        'back_color': цвет фона
+    }
+    """
+    parts = input_text.strip().split()
+    
+    # parts[0] всегда основной текст/ссылка
+    main_text = parts[0]
+    
+    # Сброс к дефолтным цветам
+    fill_color = "#000000"  # черный QR
+    back_color = "#ffffff"  # белый фон
+    
+    # Проверяем части после основного текста
+    if len(parts) > 1 and is_valid_hex(parts[1]):
+        # Есть первый HEX код - это цвет QR
+        fill_color = parts[1]
+        
+        # Если есть второй HEX код - это цвет фона
+        if len(parts) > 2 and is_valid_hex(parts[2]):
+            back_color = parts[2]
+    
+    return {
+        'text': main_text,
+        'fill_color': fill_color,
+        'back_color': back_color
+    }
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик команды /start"""
     welcome_message = """
@@ -79,9 +129,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 ✅ Ссылка для просмотра в браузере
 ✅ Возможность печати
 
+🎨 <b>Кастомные цвета:</b>
+Отправьте сообщение в формате: <code>текст #RGB_QR #RGB_фон</code>
+
+Примеры:
+• <code>https://google.com</code> → черный QR, белый фон (дефолт)
+• <code>https://google.com #8C1AFF</code> → фиолетовый QR, белый фон
+• <code>https://google.com #8C1AFF #ffffff</code> → фиолетовый QR, белый фон
+
 Попробуйте уже сейчас! Отправьте любой текст 📝
     """
-    await update.message.reply_text(welcome_message)
+    await update.message.reply_text(welcome_message, parse_mode='HTML')
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик текстовых сообщений"""
@@ -91,6 +149,12 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if not text or len(text) > 2953:  # Максимальная длина для QR кода
         await update.message.reply_text("❌ Пожалуйста, отправьте текст (максимум 2953 символа)")
         return
+    
+    # Парсим текст и извлекаем цвета
+    parsed_data = parse_text_and_colors(text)
+    main_text = parsed_data['text']
+    fill_color = parsed_data['fill_color']
+    back_color = parsed_data['back_color']
     
     # Отправляем уведомление о обработке
     await update.message.chat.send_action("upload_photo")
@@ -106,7 +170,13 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         qr_id = f"{update.message.chat_id}_{update.message.message_id}"
         
         # Сохраняем текст
-        qr_storage[qr_id] = text
+        qr_storage[qr_id] = main_text
+        
+        # Сохраняем цвета
+        qr_storage[f"{qr_id}_colors"] = {
+            "fill": fill_color,
+            "back": back_color
+        }
         
         # Генерируем QR код
         qr = qrcode.QRCode(
@@ -115,10 +185,10 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             box_size=10,
             border=2,
         )
-        qr.add_data(text)
+        qr.add_data(main_text)
         qr.make(fit=True)
         
-        img = qr.make_image(fill_color="black", back_color="white")
+        img = qr.make_image(fill_color=fill_color, back_color=back_color)
         
         # Сохраняем в памяти
         img_io = io.BytesIO()
@@ -130,18 +200,17 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             [InlineKeyboardButton("🌐 Открыть в браузере", url=f"{bot_url}/qr/{qr_id}")]
         ])
         
+        # Формируем текст подписи
+        caption_text = main_text
+        if fill_color != "#000000" or back_color != "#ffffff":
+            caption_text += f"\n\n🎨 Цвета:\n• QR: {fill_color}\n• Фон: {back_color}"
+        
         # Отправляем фото QR кода c исходный текстом
         await update.message.reply_photo(
             photo=img_io,
-            caption=text,
+            caption=caption_text,
             reply_markup=keyboard
         )
-        
-        # # Отправляем исходный текст
-        # await update.message.reply_text(
-        #     f"📝 <b>Исходный текст:</b>\n<code>{text}</code>",
-        #     parse_mode='HTML'
-        # )
         
     except Exception as e:
         logger.error(f"Ошибка при обработке текста: {e}", exc_info=True)
